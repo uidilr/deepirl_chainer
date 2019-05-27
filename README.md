@@ -3,7 +3,7 @@
 ## Contents
 
 Chainer implementation of Adversarial Inverse Reinforcement Learning (AIRL) and Generative Adversarial Imitation Learning (GAIL). 
-The code heavily depend on the reinforcement learning package Chainerrl.
+The code heavily depend on the reinforcement learning package [Chainerrl](https://www.google.co.jp/).
 
 ## Commands
 
