@@ -26,7 +26,7 @@ class Discriminator:
             # p(expert|state, action) = sigmoid(logits)
             rewards = self.reward_net(states)
             # print(F.mean(rewards))
-            state_values = self.value_net(next_states)
+            state_values = self.value_net(states)
             next_state_values = self.value_net(next_states)
             return rewards + gamma * next_state_values - state_values - log_action_probs[:, None].array
 
