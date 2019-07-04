@@ -204,7 +204,7 @@ def main():
                      minibatch_size=args.batchsize, epochs=args.epochs,
                      clip_eps_vf=None, entropy_coef=args.entropy_coef,
                      standardize_advantages=args.standardize_advantages,)
-    elif args.algo == 'airl ':
+    elif args.algo == 'airl':
         import numpy as np
         from irl.airl import AIRL as Agent
         from irl.airl import Discriminator
