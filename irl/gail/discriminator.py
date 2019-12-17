@@ -4,8 +4,12 @@ from irl.common.model import MLP
 
 
 class Discriminator:
-    def __init__(self, n_layer=3, n_units=64, loss_type='wgangp'):
+    def __init__(self, n_layer=3, n_units=64, loss_type='wgangp', gpu=-1):
         self.model = MLP(n_layer, n_units, 1)
+
+        if gpu >= 0:
+            self.model.to_gpu(gpu)
+
         self.optimizer = chainer.optimizers.Adam(alpha=1e-5, eps=1e-5)
         self.optimizer.setup(self.model)
         self.loss_type = loss_type

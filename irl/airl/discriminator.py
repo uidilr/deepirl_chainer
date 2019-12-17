@@ -5,9 +5,12 @@ from chainer.link_hooks.spectral_normalization import SpectralNormalization
 
 
 class Discriminator:
-    def __init__(self, n_layer=4, n_units=32):
+    def __init__(self, n_layer=4, n_units=32, gpu=-1):
         self.reward_net = MLP(n_layer, n_units, 1, hook=SpectralNormalization, hook_params=dict(factor=1))
         self.value_net = MLP(n_layer, n_units, 1)  # , hook=SpectralNormalization, hook_params=dict(factor=10))
+        if gpu >= 0:
+            self.reward_net.to_gpu(gpu)
+            self.value_net.to_gpu(gpu)
         # adding spectral normalization with small factor for value net makes training unstable
         # but why adversarial loss decreases when we add this to the value net?
         # because the lipschitz factor can be bounded by the lipschitz constant of the reward net?

@@ -195,7 +195,7 @@ def main():
         from irl.gail import GAIL
         from irl.gail import Discriminator
         demonstrations = np.load(args.load_demo)
-        D = Discriminator()
+        D = Discriminator(gpu=args.gpu)
         agent = GAIL(demonstrations=demonstrations, discriminator=D,
                      model=model, optimizer=opt,
                      obs_normalizer=obs_normalizer,
@@ -210,7 +210,7 @@ def main():
         from irl.airl import Discriminator
         # obs_normalizer = None
         demonstrations = np.load(args.load_demo)
-        D = Discriminator()
+        D = Discriminator(gpu=args.gpu)
         agent = Agent(demonstrations=demonstrations, discriminator=D,
                       model=model, optimizer=opt,
                       obs_normalizer=obs_normalizer,

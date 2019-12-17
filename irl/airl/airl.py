@@ -2,31 +2,26 @@ import chainer
 import numpy as np
 from chainerrl.agents import PPO
 from itertools import chain
-import copy
 import collections
+from chainerrl.policies import SoftmaxPolicy
 
 from irl.airl.discriminator import Discriminator
 from irl.common.utils.mean_or_nan import mean_or_nan
+from irl.common.utils import get_states_actions_next_states
+
 
 
 class AIRL(PPO):
     def __init__(self, discriminator: Discriminator, demonstrations, discriminator_loss_stats_window=1000, **kwargs):
+
         super().__init__(**kwargs)
         self.discriminator = discriminator
-        demo_states = demonstrations['states']
-        demo_actions = demonstrations['actions']
-        demo_next_states = copy.deepcopy(demo_states)
 
-        for demo_states_epi, demo_action_epi, demo_next_state_epi in zip(demo_states, demo_actions, demo_next_states):
-            # delete last state because there is no next state of last state
-            del demo_states_epi[-1]
-            # delete action at last state because there is no next state after the last action is taken
-            del demo_action_epi[-1]
-            # delete first state so that deepcopy of demo_states will be the next states of the demo_state
-            del demo_next_state_epi[0]
-        self.demo_states = np.array(list(chain(*demo_states)))
-        self.demo_next_states = np.array(list(chain(*demo_next_states)))
-        self.demo_actions = np.array(list(chain(*demo_actions)))
+        self.demo_states, self.demo_actions, self.demo_next_states = \
+            get_states_actions_next_states(demonstrations['states'], demonstrations['actions'], xp=self.xp)
+        if isinstance(self.model.pi, SoftmaxPolicy):
+            # action space is continuous
+            self.demo_actions = self.demo_actions.astype(dtype=self.xp.int32)
 
         self.discriminator_loss_record = collections.deque(maxlen=discriminator_loss_stats_window)
         self.reward_mean_record = collections.deque(maxlen=discriminator_loss_stats_window)
@@ -83,8 +78,8 @@ class AIRL(PPO):
             # update reward in self.memory
             transitions = list(chain(*self.memory))
             with chainer.configuration.using_config('train', False), chainer.no_backprop_mode():
-                rewards = self.discriminator.get_rewards(np.concatenate([transition['state'][None]
-                                                                         for transition in transitions])).array
+                rewards = self.discriminator.get_rewards(self.xp.asarray(np.concatenate([transition['state'][None]
+                                                                         for transition in transitions]))).array
             self.reward_mean_record.append(float(np.mean(rewards)))
             i = 0
             for episode in self.memory:

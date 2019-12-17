@@ -11,8 +11,8 @@ class GAIL(PPO):
         # super take arguments for dynamic inheritance
         super(self.__class__, self).__init__(**kwargs)
         self.discriminator = discriminator
-        self.demo_states = np.array(list(chain(*demonstrations['states'])))
-        self.demo_actions = np.array(list(chain(*demonstrations['actions'])))
+        self.demo_states = self.xp.asarray(np.asarray(list(chain(*demonstrations['states']))).astype(np.float32))
+        self.demo_actions = self.xp.asarray(np.asarray(list(chain(*demonstrations['actions']))).astype(np.float32))
 
     def _update(self, dataset):
         # override func
@@ -50,8 +50,8 @@ class GAIL(PPO):
             # update reward in self.memory
             self._flush_last_episode()
             transitions = list(chain.from_iterable(self.memory))
-            states = np.concatenate([transition['state'][None] for transition in transitions])
-            actions = np.concatenate([transition['action'][None] for transition in transitions])
+            states = self.xp.asarray(np.concatenate([transition['state'][None] for transition in transitions]))
+            actions = self.xp.asarray(np.concatenate([transition['action'][None] for transition in transitions]))
             with chainer.configuration.using_config('train', False), chainer.no_backprop_mode():
                 rewards = self.discriminator.get_rewards(self.convert_data_to_feed_discriminator(states, actions)).array
             i = 0
@@ -68,7 +68,7 @@ class GAIL(PPO):
         xp = self.model.xp
         if isinstance(self.model.pi, SoftmaxPolicy):
             # if discrete action
-            actions = xp.eye(self.model.pi.model.out_size, dtype=xp.float32)[actions]
+            actions = xp.eye(self.model.pi.model.out_size, dtype=xp.float32)[actions.astype(xp.int32)]
         if noise_scale:
             actions += xp.random.normal(loc=0., scale=noise_scale, size=actions.shape)
         return F.concat((xp.array(states), xp.array(actions)))
